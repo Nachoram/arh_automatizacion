@@ -1,0 +1,423 @@
+{
+  "updatedAt": "2026-03-11T21:11:28.250Z",
+  "createdAt": "2026-03-11T14:36:49.028Z",
+  "id": "dIFzKkUknF0itfeg",
+  "name": "Crea demanda",
+  "active": true,
+  "isArchived": false,
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "c055762a-8fe7-4141-a639-df2372f30060",
+      "typeVersion": 1.1,
+      "name": "When Executed by Another Workflow",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        272,
+        352
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "copy",
+        "fileId": {
+          "__rl": true,
+          "value": "1cpPqhuTBAB7UXkRsqxm4_oJA5nZPXViWHuTpo_IBIkM",
+          "mode": "list",
+          "cachedResultName": "Copia de Demanda en conformidad a la Ley N°20.009 (tipo)",
+          "cachedResultUrl": "https://docs.google.com/document/d/1cpPqhuTBAB7UXkRsqxm4_oJA5nZPXViWHuTpo_IBIkM/edit?usp=drivesdk"
+        },
+        "name": "=Demanda_{{ $json.nombre_demandado }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        880,
+        352
+      ],
+      "id": "8ee5c1fa-12ec-4901-8325-864f7e7a25d3",
+      "name": "Copiar Plantilla2",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PlY76obRIwsQh9yA",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "replaceAll",
+              "text": "{{tribunal}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.tribunal }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{nombre_demandado}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.nombre_demandado }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{rut_demandado}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.rut_demandado }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{domicilio_demandado}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.domicilio_demandado }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{monto_formateado}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.monto_reclamado }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{fecha_aviso}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.fecha_declaracion_reclamo }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{canal_operacion}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.canal_operacion }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{relato_hechos}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.relato_hechos }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{argumento_banco}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.argumento_banco }}",
+              "matchCase": true
+            },
+            {
+              "action": "replaceAll",
+              "text": "{{puntos_ataque_limpio}}",
+              "replaceText": "={{ $('Code in JavaScript').item.json.puntos_ataque }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1536,
+        352
+      ],
+      "id": "97b2604e-77e9-4164-a378-d26effa029a1",
+      "name": "Reemplazar Variables2",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "sCExOPuu6i6K0Hb2",
+          "name": "Google Docs account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo: Preparar Requerimientos API Google Docs\n// Referencia ID_Maestro: a0471f13-eb0f-4352-9dbb-c910e702fddb\nconst data = $input.first().json; \nconst transacciones = JSON.parse(data.tabla_transaccion || \"[]\").filter(t => t.Fecha);\n\n// Calculamos filas (5 transacciones + 1 encabezado)\nconst numRows = transacciones.length + 1;\n\nreturn {\n  documentId: data.id,\n  requests: [\n    {\n      // Paso A: Borrar el placeholder {{tabla_texto}}\n      \"replaceAllText\": {\n        \"containsText\": { \"text\": \"{{tabla_texto}}\", \"matchCase\": true },\n        \"replaceText\": \"\" \n      }\n    },\n    {\n      // Paso B: Insertar la estructura de la tabla nativa (5 columnas)\n      \"insertTable\": {\n        \"rows\": numRows,\n        \"columns\": 5,\n        \"location\": { \"index\": 1 } \n      }\n    }\n  ]\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        544
+      ],
+      "id": "4d2699c8-9969-49f0-8338-4751cdcd7200",
+      "name": "Preparar Datos (Textos)"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nodo: Preparar Datos Demanda y Comandos de Tabla Nativa\n// Proyecto: Automatización de Fraudes Bancarios 2026\n\nconst item = $input.first().json;\nconst transacciones = JSON.parse(item.tabla_transaccion || \"[]\").filter(t => t.Fecha);\n\n// 1. Datos de la Demanda (Textos Simples)\nconst montoReclamado = item.monto_reclamado || 0;\nconst montoFormateado = montoReclamado.toLocaleString('es-CL');\nconst fechaAviso = item.fecha_aviso ? item.fecha_aviso.split('T')[0] : \"\";\n\n// Procesar Puntos de Ataque para que se vean como párrafos legales\nlet puntosAtaqueTexto = \"\";\ntry {\n  const puntos = JSON.parse(item.puntos_ataque || \"[]\");\n  puntosAtaqueTexto = puntos.join('\\n\\n');\n} catch (e) {\n  puntosAtaqueTexto = item.puntos_ataque || \"\";\n}\n\n// 2. Construcción de Comandos \"Language\" de Google Docs (batchUpdate)\n// Primero eliminamos el marcador {{tabla_texto}} e insertamos una tabla real\nlet googleDocsRequests = [\n  {\n    // Buscamos el marcador y lo vaciamos para dejar espacio a la tabla\n    replaceAllText: {\n      containsText: { text: \"{{tabla_texto}}\", matchCase: true },\n      replaceText: \"\"\n    }\n  },\n  {\n    // Insertamos la estructura de la tabla nativa\n    // Definimos 5 columnas: Fecha, Tarjeta, Monto, Comercio, Canal\n    insertTable: {\n      rows: transacciones.length + 1, // +1 para la fila de encabezados\n      columns: 5,\n      location: { index: 1 } // Se recomienda insertar al inicio o calcular el índice\n    }\n  }\n];\n\n// 3. Salida final para n8n\nreturn {\n  json: {\n    documentId: item.id, // ID del documento copiado (ej: Demanda_Sixbel...)\n    id_maestro: item.id_maestro,\n    \n    // Variables para el nodo de Google Docs (Update)\n    reemplazos_texto: {\n      tribunal: item.tribunal || \"Juzgado de Policía Local de Peñalolén\",\n      nombre_demandado: item.nombre_demandado,\n      rut_demandado: item.rut_demandado,\n      domicilio_demandado: item.domicilio_demandado,\n      monto_formateado: `$${montoFormateado}`,\n      fecha_aviso: fechaAviso,\n      canal_operacion: item.canal_operacion,\n      relato_hechos: item.relato_hechos,\n      argumento_banco: item.argumento_banco,\n      puntos_ataque_limpio: puntosAtaqueTexto\n    },\n    \n    // Comandos para el nodo HTTP Request (API batchUpdate)\n    requests_google_api: googleDocsRequests\n  }\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        576,
+        336
+      ],
+      "id": "98766ac3-6142-493f-8ac1-e57c52e0a7f7",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "url": "=https://docs.googleapis.com/v1/documents/{{ $json.id }}:batchUpdate",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "googleDocsOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"requests\": {{ JSON.stringify($('Preparar Datos (Textos)').first().json.requests) }}\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        1552,
+        528
+      ],
+      "id": "28118426-c572-464b-ac8e-9097ac008619",
+      "name": "HTTP Request",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "PlY76obRIwsQh9yA",
+          "name": "Google Drive account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1184,
+        528
+      ],
+      "id": "3f39ff47-8cdf-4fc7-b008-e733176c5a70",
+      "name": "Merge"
+    }
+  ],
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Preparar Datos (Textos)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Copiar Plantilla2": {
+      "main": [
+        [
+          {
+            "node": "Reemplazar Variables2",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar Datos (Textos)": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Copiar Plantilla2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "staticData": null,
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "pinData": {
+    "When Executed by Another Workflow": [
+      {
+        "json": {
+          "id_demanda": "309878e8-c1d9-4361-b63c-4e7daf07cc4b",
+          "id_maestro": "a0471f13-eb0f-4352-9dbb-c910e702fddb",
+          "nombre_demandado": "Sixbel Maria Figueroa Agreda",
+          "rut_demandado": "22912579-6",
+          "tribunal": "Juzgado de Policía Local de Peñalolén",
+          "canal_operacion": "Apple Pay / Wallet",
+          "suspencion": false,
+          "tabla_transaccion": "[{\"Fecha\":\"27/12/2025 23:19:40\",\"Tarjeta\":\"520387******7010\",\"Monto Transaccion\":800000,\"Moneda\":\"Pesos\",\"País\":\"Chile\",\"Rubro\":\"Servicios de recreación varios\",\"Código de Comercio\":\"00281068\",\"Nombre del Comercio\":\"CASINO ENJOY VINA\",\"Cod Aut\":\"194044\",\"Canal\":\"P-Apple Pay\",\"Respuesta\":\"APROBADA\"},{\"Fecha\":\"27/12/2025 23:57:34\",\"Tarjeta\":\"520387******7010\",\"Monto Transaccion\":800000,\"Moneda\":\"Pesos\",\"País\":\"Chile\",\"Rubro\":\"Servicios de recreación varios\",\"Código de Comercio\":\"00281068\",\"Nombre del Comercio\":\"CASINO ENJOY VINA\",\"Cod Aut\":\"573477\",\"Canal\":\"P-Apple Pay\",\"Respuesta\":\"APROBADA\"},{\"Fecha\":\"28/12/2025 12:24:27\",\"Tarjeta\":\"520387******7010\",\"Monto Transaccion\":475990,\"Moneda\":\"Pesos\",\"País\":\"Chile\",\"Rubro\":\"Lugares para comer, Restaurantes\",\"Código de Comercio\":\"000000000199870\",\"Nombre del Comercio\":\"LA CAVA SPA\",\"Cod Aut\":\"242762\",\"Canal\":\"P-Apple Pay\",\"Respuesta\":\"APROBADA\"},{\"Fecha\":\"29/12/2025 12:25:04\",\"Tarjeta\":\"520387******7010\",\"Monto Transaccion\":456660,\"Moneda\":\"Pesos\",\"País\":\"Chile\",\"Rubro\":\"Lugares para comer, Restaurantes\",\"Código de Comercio\":\"000000000199870\",\"Nombre del Comercio\":\"LA CAVA SPA\",\"Cod Aut\":\"250434\",\"Canal\":\"P-Apple Pay\",\"Respuesta\":\"APROBADA\"},{\"Fecha\":\"30/12/2025 12:18:09\",\"Tarjeta\":\"520387******7010\",\"Monto Transaccion\":488990,\"Moneda\":\"Pesos\",\"País\":\"Chile\",\"Rubro\":\"Lugares para comer, Restaurantes\",\"Código de Comercio\":\"000000000199870\",\"Nombre del Comercio\":\"LA CAVA SPA\",\"Cod Aut\":\"180981\",\"Canal\":\"P-Apple Pay\",\"Respuesta\":\"APROBADA\"},{\"Tarjeta\":\"Monto Total Reclamado\",\"Monto Transaccion\":3021640},{\"Tarjeta\":\"Total Transacciones Reclamadas\",\"Monto Transaccion\":5}]",
+          "domicilio_demandado": "Calle Antupiseu 9016 N° 9016 Comuna Peñalolén, Ciudad Santiago Región Metropolitana",
+          "banco": "Santander",
+          "id_mail": "19cb43e0478808e8",
+          "uri_demanda": null,
+          "fecha_declaracion_reclamo": "2026-04-02T00:00:00+00:00",
+          "fecha_aviso": "2026-02-02T00:00:00+00:00",
+          "fecha_mail": "2026-03-03T15:07:49+00:00",
+          "monto_reclamado": 3021640,
+          "tipo_accion": "Demanda Civil",
+          "relato_hechos": "Con fecha 02 de febrero de 2026, la cliente, Sra. Sixbel Maria Figueroa Agreda, R.U.N. 22.912.579-6, domiciliada en Antupiren 9016, Peñalolén, al revisar su estado de cuenta de la tarjeta de crédito Mastercard N° 520387******7010 del Banco Santander, detectó la existencia de cinco transacciones no reconocidas, por un monto total de $3.021.640 Pesos Chilenos. Estas operaciones fueron realizadas entre el 27 y el 30 de diciembre de 2025. Específicamente, dos cargos por $800.000 Pesos cada uno se efectuaron el 27 de diciembre de 2025 en 'CASINO ENJOY VINA', y tres cargos por $475.990, $456.660 y $488.990 Pesos, respectivamente, se realizaron entre el 28 y 30 de diciembre de 2025 en 'LA CAVA SPA'.\n\nInmediatamente tras la detección, el mismo 02 de febrero de 2026, la Sra. Figueroa se comunicó con el Banco Santander a través de su call center, informando del desconocimiento de las operaciones. A las 12:06:35 horas de esa misma fecha, el banco procedió al bloqueo de la tarjeta de crédito afectada. Posteriormente, el 04 de febrero de 2026, la cliente remitió al banco la declaración jurada correspondiente a su reclamo y una copia del parte de denuncia ante Carabineros (RUC: 2600169241-K), interpuesto el 02 de febrero de 2026 ante la 43° Comisaría de Peñalolén por uso malicioso de tarjetas y dispositivos financieros, donde se reiteró el desconocimiento de los movimientos. La cliente ha manifestado expresamente que no fue víctima de robo o extravío de su tarjeta o teléfono móvil, mantiene sus productos financieros en su poder, no facilitó claves ni datos a terceros, no recibió llamadas o mensajes relacionados con los hechos, ni tenía su tarjeta previamente registrada o enrolada en los comercios donde se realizaron las compras fraudulentas.",
+          "argumento_banco": "El Banco Santander rechaza la solicitud de cobertura de la cliente, argumentando que las transacciones desconocidas fueron efectuadas mediante la aplicación Wallet de Apple Pay, la cual requiere el enrolamiento previo de la tarjeta. Según el banco, este enrolamiento exige la inserción de la clave válida de la tarjeta, los datos de la misma y la validación mediante un Código OTP (One Time Password) enviado al número de teléfono móvil registrado del cliente. El banco sostiene que los datos de clave y tarjeta son privados y de exclusiva responsabilidad del cliente.\n\nEl banco concluye que este proceso configura una 'autenticación reforzada con la utilización de dos factores de autenticación, diferentes e independientes entre sí', lo que activa la presunción de responsabilidad del cliente establecida en el Artículo 5 ter letra h) de la Ley N° 20.009 (introducido por la Ley N° 21.234). Además, señala que el cliente no manifestó extravío, pérdida o hurto de sus productos financieros ni de su teléfono móvil. El banco adjunta evidencia de un enrolamiento de la tarjeta en Apple Pay con fecha 15 de diciembre de 2025, indicando que este fue validado con el ingreso completo y correcto de datos de tarjeta y OTP, atribuyendo la responsabilidad exclusiva del buen uso y resguardo de claves y datos al cliente, y afirmando que no existe indicio de vulneración de sus medidas de seguridad.",
+          "puntos_ataque": "[\"Punto 1: Incumplimiento de la Carga de la Prueba y Falta de Acreditación de Dolo o Culpa Grave del Cliente (Art. 5 ter de la Ley N° 21.234).\\nEl banco se limita a invocar la presunción de responsabilidad del cliente establecida en el Art. 5 ter letra h) de la Ley N° 21.234 (referenciada como Ley N° 20.009 por el banco) por el uso de un código OTP en el enrolamiento. Sin embargo, la ley establece que la responsabilidad por los fraudes recae primariamente en el emisor, a menos que se acredite el dolo o culpa grave del titular. La cliente ha negado categóricamente haber facilitado sus datos, haber perdido su teléfono o tarjeta, o haber sido víctima de ingeniería social. El banco no proporciona ninguna prueba concreta que demuestre que la conducta de la cliente constituyó dolo o culpa grave, ni explica cómo los datos de la tarjeta y el OTP fueron obtenidos y utilizados para el enrolamiento en Apple Pay sin su consentimiento o negligencia. La mera invocación de una presunción legal, sin la debida acreditación de los hechos subyacentes que la sustenten de forma concluyente y exclusiva en el cliente, es insuficiente para eximir de responsabilidad al banco.\",\"Punto 2: Vulneración del Deber de Seguridad, Custodia y Monitoreo de Transacciones Inusuales por Parte del Banco.\\nLas transacciones reclamadas, que suman una cantidad significativa ($3.021.640) realizadas en comercios atípicos para el cliente (casino y restaurante de montos elevados) y en un período de pocos días, debieron haber activado las alertas de fraude y los protocolos de seguridad del Banco Santander. El banco no demuestra haber implementado medidas de monitoreo efectivas ni haber contactado a la cliente para verificar la autenticidad de estas operaciones claramente inusuales y de alto riesgo. La inacción del banco ante un patrón de consumo anómalo constituye una vulneración grave de su deber de seguridad y custodia de los fondos y medios de pago de sus clientes, conforme a la Ley N° 21.234 y la Ley N° 19.496, que exige un servicio seguro y diligente. La ausencia de este monitoreo contribuyó directamente a la materialización del perjuicio.\",\"Punto 3: Contradicción en el Enrolamiento y Ausencia de Consentimiento o Conocimiento del Cliente.\\nLa cliente declara explícitamente en su Declaración Jurada que ninguna de las compras reclamadas se realizó en un comercio donde su tarjeta estuviera previamente registrada o enrolada, y niega cualquier participación en la realización de las mismas. Por su parte, el banco afirma que la tarjeta fue enrolada en Apple Pay el 15 de diciembre de 2025 mediante la utilización de datos de tarjeta y un OTP. La discrepancia entre la afirmación del banco sobre el enrolamiento y la negación de la cliente respecto de este acto vital, plantea una duda razonable sobre la integridad del proceso de enrolamiento o la seguridad del sistema. El banco no logra explicar de manera concluyente cómo se obtuvo toda la información necesaria para el enrolamiento (número de tarjeta, código de seguridad, fecha de vencimiento y el OTP) sin la intervención o culpa grave de la cliente, lo que apunta a una posible brecha de seguridad en sus sistemas que permitieron un enrolamiento fraudulento.\"]",
+          "viabilidad": "Alta",
+          "resumen_tatico": "Viabilidad: Alta. Puntos clave: 3"
+        }
+      }
+    ],
+    "Copiar Plantilla2": [
+      {
+        "json": {
+          "kind": "drive#file",
+          "id": "1Q7JaZHciErg1-MgF2NS6HLoWoGjhZ9WQPn1tK_rgqAU",
+          "name": "Demanda_Sixbel Maria Figueroa Agreda",
+          "mimeType": "application/vnd.google-apps.document"
+        },
+        "pairedItem": {
+          "item": 0
+        }
+      }
+    ]
+  },
+  "versionId": "f5b92e7d-fa87-4324-89f3-c397ff2dab05",
+  "activeVersionId": "30404c0a-821d-491e-a6a4-63323b584b20",
+  "triggerCount": 0,
+  "shared": [
+    {
+      "updatedAt": "2026-03-11T14:36:49.028Z",
+      "createdAt": "2026-03-11T14:36:49.028Z",
+      "role": "workflow:owner",
+      "workflowId": "dIFzKkUknF0itfeg",
+      "projectId": "uALgjyZSTMmadoiP"
+    }
+  ],
+  "activeVersion": {
+    "updatedAt": "2026-03-11T15:45:08.147Z",
+    "createdAt": "2026-03-11T15:43:00.945Z",
+    "versionId": "30404c0a-821d-491e-a6a4-63323b584b20",
+    "workflowId": "dIFzKkUknF0itfeg",
+    "nodes": [
+      {
+        "parameters": {
+          "inputSource": "passthrough"
+        },
+        "id": "c055762a-8fe7-4141-a639-df2372f30060",
+        "typeVersion": 1.1,
+        "name": "When Executed by Another Workflow",
+        "type": "n8n-nodes-base.executeWorkflowTrigger",
+        "position": [
+          272,
+          352
+        ]
+      },
+      {
+        "parameters": {
+          "jsCode": "// Nodo \"Code\" en n8n\n// Conectar después del \"Execute Workflow Trigger\"\n\nfor (const item of $input.all()) {\n  \n  // 1. Parsear la tabla de transacciones (de String a Array de Objetos)\n  // Esto permite que el iterador {#tabla_transaccion_array} de Word funcione.\n  if (typeof item.json.tabla_transaccion === 'string') {\n    try {\n      item.json.tabla_transaccion_array = JSON.parse(item.json.tabla_transaccion);\n    } catch (error) {\n      item.json.tabla_transaccion_array = [];\n    }\n  }\n\n  // 2. Parsear los Puntos de Ataque\n  // Vienen como un Array stringificado. Los unimos con doble salto de línea (\\n\\n)\n  // para que se inyecten como párrafos limpios en el documento Word.\n  if (typeof item.json.puntos_ataque === 'string') {\n    try {\n      const puntosArray = JSON.parse(item.json.puntos_ataque);\n      item.json.puntos_ataque_formateado = puntosArray.join('\\n\\n');\n    } catch (error) {\n      item.json.puntos_ataque_formateado = item.json.puntos_ataque;\n    }\n  }\n  \n  // 3. Formatear el monto con separadores de miles (Estilo Chile: $3.021.640)\n  if (item.json.monto_reclamado) {\n    item.json.monto_formateado = item.json.monto_reclamado.toLocaleString('es-CL');\n  }\n}\n\nreturn $input.all();"
+        },
+        "type": "n8n-nodes-base.code",
+        "typeVersion": 2,
+        "position": [
+          480,
+          352
+        ],
+        "id": "40bcfb26-6ca6-403c-bdc6-f301d60b3b00",
+        "name": "Code in JavaScript"
+      },
+      {
+        "parameters": {
+          "operation": "download",
+          "fileId": {
+            "__rl": true,
+            "value": "1GUJyzh62WCUJ20y0uU5UB5iIYK467OoGyL0EELt-L4M",
+            "mode": "list",
+            "cachedResultName": "Demanda en conformidad a la Ley N°20.009 (tipo)",
+            "cachedResultUrl": "https://docs.google.com/document/d/1GUJyzh62WCUJ20y0uU5UB5iIYK467OoGyL0EELt-L4M/edit?usp=drivesdk"
+          },
+          "options": {}
+        },
+        "type": "n8n-nodes-base.googleDrive",
+        "typeVersion": 3,
+        "position": [
+          688,
+          352
+        ],
+        "id": "1463dbbf-fc98-4e04-bd37-b42ad303dec7",
+        "name": "Download file",
+        "credentials": {
+          "googleDriveOAuth2Api": {
+            "id": "PlY76obRIwsQh9yA",
+            "name": "Google Drive account 2"
+          }
+        }
+      }
+    ],
+    "connections": {
+      "When Executed by Another Workflow": {
+        "main": [
+          [
+            {
+              "node": "Code in JavaScript",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      },
+      "Code in JavaScript": {
+        "main": [
+          [
+            {
+              "node": "Download file",
+              "type": "main",
+              "index": 0
+            }
+          ]
+        ]
+      }
+    },
+    "authors": "Ignacio Ramirez molina",
+    "name": "Version 30404c0a",
+    "description": "",
+    "autosaved": true
+  },
+  "tags": [
+    {
+      "updatedAt": "2026-02-27T18:11:08.001Z",
+      "createdAt": "2026-02-27T18:11:08.001Z",
+      "id": "sndFGzQdaIodK97N",
+      "name": "arh"
+    }
+  ]
+}
